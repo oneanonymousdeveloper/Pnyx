@@ -29,9 +29,10 @@ const Login = () => {
     return <Navigate to={'/'}/>
   }
   return (
-    <div>
-      <h2>Login</h2>
-      <form onSubmit={login}>
+    <div className="flex min-h-full flex-col justify-center px-6 py-12 lg:px-8">
+      <h2 className="mt-10 text-center text-2xl/9 font-bold tracking-tight text-black">Login</h2>
+      <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
+      <form onSubmit={login} className="space-y-6">
         <Formrow
           name="name"
           labelText="Name"
@@ -46,8 +47,9 @@ const Login = () => {
           value={password}
           changeHandler={(event) => Setpassword(event.target.value)}
         />
-        <button type="Submit">Login</button>
+        <button type="Submit" className="flex w-full justify-center rounded-md bg-black px-3 py-1.5 text-sm/6 font-semibold text-white shadow-sm hover:bg-indigo-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-800">Login</button>
       </form>
+      </div>
     </div>
   );
 };

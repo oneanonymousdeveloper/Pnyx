@@ -39,14 +39,18 @@ const Navbar = () => {
           </Link>
         </div>
       </div>
-      <div className="hidden md:flex items-center gap-8 xl:gap-12 font-medium">
-        <Link href="">Home</Link>
-        <Link href="">Create Job</Link>
+      <div className="hidden md:flex items-center gap-4 xl:gap-6 font-medium">
+        <Link href="/">Home</Link>
         <Link href="">Share Latest</Link>
         <SignedOut>
           <Link href="/login">
             <button className="py-2 px-4 rounded-xl bg-black text-white">
               Login
+            </button>
+          </Link>
+          <Link href="/register">
+            <button className="py-2 px-4 rounded-xl bg-white text-black outline outline-1 -outline-offset-1 outline-black ">
+              Register
             </button>
           </Link>
         </SignedOut>
