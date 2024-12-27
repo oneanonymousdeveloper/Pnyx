@@ -1,20 +1,35 @@
-import { useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import {
-  SignedIn,
-  SignedOut,
-  UserButton,
-} from "@clerk/clerk-react";
+import { UserContext } from "../UserContext";
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
+  const { setUserInfo, userInfo } = useContext(UserContext);
+
+  useEffect(() => {
+    fetch("http://localhost:4000/profile", {
+      credentials: "include",
+    }).then((response) => {
+      response.json().then((user) => {
+        setUserInfo(user);
+      });
+    });
+  }, [setUserInfo]);
+
+  const name = userInfo?.name;
+
+  function logout() {
+    fetch("http://localhost:4000/logout", {
+      credentials: "include",
+      method: "POST",
+    });
+    setUserInfo(null);
+  }
+
   return (
     <div className="w-full h-16 md:h-20 flex items-center justify-between">
       <Link className="flex items-center gap-4 font-bold text-2xl">
-        <img
-          src="/Pnyx.png"
-          className="w-8 h-8"
-        />
+        <img src="/Pnyx.png" className="w-8 h-8" />
         <span>Pnyx</span>
       </Link>
       <div className="md:hidden">
@@ -29,34 +44,55 @@ const Navbar = () => {
             open ? "-right-0" : "-right-[100%]"
           } transition-all ease-in-out`}
         >
-          <Link href="">Home</Link>
-          <Link href="">Create Job</Link>
-          <Link href="">Share Latest</Link>
-          <Link href="">
-            <button className="py-2 px-4 rounded-xl bg-black text-white">
-              Login
-            </button>
-          </Link>
+          {name && (
+            <>
+              <Link to="/">Home</Link>
+              <Link to="/create">Share Latest</Link>
+              <a  onClick={logout}>
+                Logout
+              </a>
+            </>
+          )}
+          {!name && (
+            <>
+              <Link to="/login">
+                <button className="py-2 px-4 rounded-xl bg-black text-white">
+                  Login
+                </button>
+              </Link>
+              <Link to="/register">
+                <button className="py-2 px-4 rounded-xl bg-white text-black outline outline-1 -outline-offset-1 outline-black ">
+                  Register
+                </button>
+              </Link>
+            </>
+          )}
         </div>
       </div>
       <div className="hidden md:flex items-center gap-4 xl:gap-6 font-medium">
-        <Link href="/">Home</Link>
-        <Link href="">Share Latest</Link>
-        <SignedOut>
-          <Link href="/login">
-            <button className="py-2 px-4 rounded-xl bg-black text-white">
-              Login
-            </button>
-          </Link>
-          <Link href="/register">
-            <button className="py-2 px-4 rounded-xl bg-white text-black outline outline-1 -outline-offset-1 outline-black ">
-              Register
-            </button>
-          </Link>
-        </SignedOut>
-        <SignedIn>
-          <UserButton />
-        </SignedIn>
+        {name && (
+          <>
+            <Link to="/">Home</Link>
+            <Link to="/create">Share Latest</Link>
+            <a  onClick={logout}>
+              Logout
+            </a>
+          </>
+        )}
+        {!name && (
+          <>
+            <Link to="/login">
+              <button className="py-2 px-4 rounded-xl bg-black text-white">
+                Login
+              </button>
+            </Link>
+            <Link to="/register">
+              <button className="py-2 px-4 rounded-xl bg-white text-black outline outline-1 -outline-offset-1 outline-black ">
+                Register
+              </button>
+            </Link>
+          </>
+        )}
       </div>
     </div>
   );

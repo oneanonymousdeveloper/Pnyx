@@ -9,6 +9,7 @@ import Create from "./pages/Create.jsx";
 import Singleblogpage from "./pages/Singleblogpage.jsx";
 import Mainlayout from "./layouts/Mainlayout.jsx";
 import { ClerkProvider} from "@clerk/clerk-react"
+import UserContextProvider from "./UserContext";
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -47,7 +48,9 @@ const router = createBrowserRouter([
 createRoot(document.getElementById("root")).render(
   <StrictMode >
   <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
+    <UserContextProvider >
       <RouterProvider router={router} />
+      </UserContextProvider>
   </ClerkProvider>
   </StrictMode>
 );

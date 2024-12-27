@@ -62,8 +62,15 @@ app.post("/login", async (req, res) => {
     );
     res
       .status(200)
-      .cookie("token", token)
-      .json({ message: "Login Successful" });
+      .cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        maxAge: 365 * 24 * 60 * 60 * 1000,
+      })
+      .json({
+        id : founduser._id,
+        name
+      });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "An error occurred" });
@@ -71,8 +78,21 @@ app.post("/login", async (req, res) => {
 });
 
 app.get("/profile", (req, res) => {
-  res.json(req.cookies);
+  const token = req.cookies.token;
+  if (!token) {
+    return res.status(401).json({ error: "Access denied, no token provided" });
+  }
+  jwt.verify(token, process.env.JWT_SECRET, (err, bloguser) => {
+    if (err) {
+      return res.status(403).json({ error: "Invalid token" });
+    }
+    res.status(200).json({ name: bloguser.name });
+  });
 });
+
+app.post('/logout', (req, res) => {
+    res.cookie('token', '').json('ok')
+})
 
 app.listen(4000, () => {
   console.log(`Running on port 4000`);
