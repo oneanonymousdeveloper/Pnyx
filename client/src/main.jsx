@@ -6,7 +6,7 @@ import Homepage from "./pages/Homepage.jsx";
 import Login from "./pages/Login.jsx";
 import Register from "./pages/Register.jsx";
 import Create from "./pages/Create.jsx";
-import Singleblogpage from "./pages/Singleblogpage.jsx";
+// import Singleblogpage from "./pages/Singleblogpage.jsx";
 import Mainlayout from "./layouts/Mainlayout.jsx";
 import { ClerkProvider} from "@clerk/clerk-react"
 import UserContextProvider from "./UserContext";
@@ -25,10 +25,10 @@ const router = createBrowserRouter([
         path: "/",
         element: <Homepage />,
       },
-      {
-        path: "/:blogId",
-        element: <Singleblogpage />,
-      },
+      // {
+      //   path: "/:blogId",
+      //   element: <Singleblogpage />,
+      // },
       {
         path: "/create",
         element: <Create />,

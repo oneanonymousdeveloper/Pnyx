@@ -10,6 +10,9 @@ import cors from "cors";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import cookieParser from "cookie-parser";
+import { Blog } from "./Models/Blog.js";
+import multer from "multer";
+const upload = multer();
 const dbUrl = process.env.DB_URL;
 
 if (process.env.NODE_ENV === "development") {
@@ -17,6 +20,7 @@ if (process.env.NODE_ENV === "development") {
 }
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 app.use(
   cors({
@@ -68,8 +72,8 @@ app.post("/login", async (req, res) => {
         maxAge: 365 * 24 * 60 * 60 * 1000,
       })
       .json({
-        id : founduser._id,
-        name
+        id: founduser._id,
+        name,
       });
   } catch (err) {
     console.error(err);
@@ -90,9 +94,29 @@ app.get("/profile", (req, res) => {
   });
 });
 
-app.post('/logout', (req, res) => {
-    res.cookie('token', '').json('ok')
-})
+app.post("/logout", (req, res) => {
+  res.cookie("token", "").json("ok");
+});
+
+app.post("/create", upload.none(), async (req, res) => {
+  const { title, description } = req.body;
+  if (!title || !description) {
+    return res.status(400).json({ error: "Both title and description are required." });
+  }
+  const newBlog = new Blog({ title, description });
+  await newBlog.save();
+  res.status(201).json({ message: "Blog Created Successfully" });
+});
+
+app.get("/blogs", async (req, res) => {
+  try {
+    const blogs = await Blog.find(); 
+    res.status(200).json(blogs);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "An error occurred while fetching blogs" });
+  }
+});
 
 app.listen(4000, () => {
   console.log(`Running on port 4000`);
