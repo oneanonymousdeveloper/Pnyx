@@ -19,10 +19,9 @@ const Login = () => {
         credentials: "include",
       });
       if (response.ok) {
-        response.json((user) => {
+        const user = await response.json()
           setUserInfo(user);
           setRedirect(true);
-        });
       }
     } catch (error) {
       alert(`Login failed`);
@@ -49,7 +48,7 @@ const Login = () => {
           <Formrow
             name="password"
             labelText="Password"
-            type="text"
+            type="password"
             value={password}
             changeHandler={(event) => setPassword(event.target.value)}
           />

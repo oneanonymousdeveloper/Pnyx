@@ -6,10 +6,11 @@ import Homepage from "./pages/Homepage.jsx";
 import Login from "./pages/Login.jsx";
 import Register from "./pages/Register.jsx";
 import Create from "./pages/Create.jsx";
-// import Singleblogpage from "./pages/Singleblogpage.jsx";
+import SingleBlog from "./pages/SingleBlog.jsx";
 import Mainlayout from "./layouts/Mainlayout.jsx";
 import { ClerkProvider} from "@clerk/clerk-react"
 import UserContextProvider from "./UserContext";
+import Edit from "./pages/Edit.jsx";
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -25,10 +26,10 @@ const router = createBrowserRouter([
         path: "/",
         element: <Homepage />,
       },
-      // {
-      //   path: "/:blogId",
-      //   element: <Singleblogpage />,
-      // },
+      {
+        path: "/:id",
+        element: <SingleBlog />,
+      },
       {
         path: "/create",
         element: <Create />,
@@ -41,6 +42,10 @@ const router = createBrowserRouter([
         path: "/register",
         element: <Register />,
       },
+      {
+        path : '/edit/:id',
+        element : <Edit/>
+      }
     ],
   },
 ]);
