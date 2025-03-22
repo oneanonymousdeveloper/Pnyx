@@ -4,17 +4,34 @@ import Formrow from "../components/Formrow";
 const Register = () => {
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
+  const [message, setMessage] = useState("");
 
   async function register(event) {
     event.preventDefault();
+    
+    // Client-side validation
+    if (name.length < 3) {
+      return setMessage("Name must be at least 3 characters long.");
+    }
+    if (password.length < 8) {
+      return setMessage("Password must be at least 8 characters long.");
+    }
+
     try {
-      await fetch("http://localhost:4000/register", {
+      const response = await fetch("http://localhost:4000/register", {
         method: "POST",
         body: JSON.stringify({ name, password }),
         headers: { "Content-Type": "application/json" },
       });
+
+      if (response.ok) {
+        setMessage("Registration successful!");
+      } else {
+        const errorData = await response.json();
+        setMessage(errorData.error || "Registration failed.");
+      }
     } catch (error) {
-      alert(`Registration failed`);
+      setMessage("An error occurred. Please try again.");
     }
   }
 
@@ -23,6 +40,11 @@ const Register = () => {
       <h2 className="mt-10 text-center text-2xl/9 font-bold tracking-tight text-black">
         Register
       </h2>
+      {message && (
+        <p className={`text-sm ${message.includes("failed") ? "text-red-500" : "text-green-500"}`}>
+          {message}
+        </p>
+      )}
       <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
         <form onSubmit={register} method="post" className="space-y-6">
           <Formrow
@@ -35,7 +57,7 @@ const Register = () => {
           <Formrow
             name="password"
             labelText="Password"
-            type="text"
+            type="password"
             value={password}
             changeHandler={(event) => setPassword(event.target.value)}
           />
@@ -52,3 +74,4 @@ const Register = () => {
 };
 
 export default Register;
+

@@ -65,7 +65,7 @@ const SingleBlog = () => {
           </div>
         </div>
       ) : (
-        <p>Loading blog details...</p>
+        <p>Login Please</p>
       )}
     </div>
     </div>

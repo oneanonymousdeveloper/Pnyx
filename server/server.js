@@ -26,7 +26,7 @@ app.use(
   cors({
     origin: "http://localhost:5173", // Replace with the frontend's URL
     methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type"],
+    allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
   })
 );
@@ -40,7 +40,7 @@ app.post("/register", async (req, res) => {
     const { name, password } = req.body;
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = new Bloguser({ name, password: hashedPassword });
-    await newUser.save(); // This creates the collection if it doesn't exist
+    await newUser.save();
     res.status(201).json({ message: "User registered successfully" });
   } catch (err) {
     console.error(err);
@@ -70,6 +70,7 @@ app.post("/login", async (req, res) => {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         maxAge: 365 * 24 * 60 * 60 * 1000,
+        SameSite: 'Strict'
       })
       .json({
         id: founduser._id,
@@ -115,14 +116,27 @@ app.post("/logout", (req, res) => {
 app.post("/create", upload.none(), isLoggedIn, async (req, res) => {
   const { title, description } = req.body;
   const { user } = req;
+  //   const { user } = req;
   if (!title || !description) {
     return res
       .status(400)
       .json({ error: "Both title and description are required." });
   }
-  const newBlog = new Blog({ title, description ,user: user.id, });
-  await newBlog.save();
-  res.status(201).json({ message: "Blog Created Successfully" });
+  try {
+    const newBlog = new Blog({
+      title,
+      description,
+      user: user.id,
+    });
+
+    await newBlog.save();
+    res.status(201).json({ message: "Blog Created Successfully" });
+  } catch (err) {
+    console.error(err);
+    res
+      .status(500)
+      .json({ error: "An error occurred while creating the blog" });
+  }
 });
 
 app.get("/blogs", async (req, res) => {
@@ -136,84 +150,78 @@ app.get("/blogs", async (req, res) => {
 });
 
 app.get("/:id", isLoggedIn, async (req, res) => {
+  try {
+    const blog = await Blog.findById(req.params.id);
+    if (!blog) {
+      return res.status(404).json({ error: "Blog not found" });
+    }
+    res.status(200).json(blog);
+  } catch (err) {
+    console.error(err);
+    res
+      .status(500)
+      .json({ error: "An error occurred while fetching the blog" });
+  }
+});
+
+app.put("/edit/:id", isLoggedIn, async (req, res) => {
+  const { title, description } = req.body;
+  const { user } = req;
+
+  try {
+    const blog = await Blog.findOneAndUpdate(req.params.id);
+    if (!blog) {
+      return res.status(404).json({ error: "Blog not found" });
+    }
+
+    if (blog.user !== user.id) {
+      return res
+        .status(403)
+        .json({ error: "You are not authorized to edit this blog" });
+    }
+
+    res.status(200).json({ message: "Blog updated successfully" });
+  } catch (err) {
+    console.error(err);
+    res
+      .status(500)
+      .json({ error: "An error occurred while updating the blog" });
+  }
+});
+
+app.delete("/delete/:id", isLoggedIn, async (req, res) => {
+  const token = req.cookies.token;
+  if (!token) {
+    return res.status(401).json({ error: "Access denied, no token provided" });
+  }
+
+  jwt.verify(token, process.env.JWT_SECRET, async (err, bloguser) => {
+    if (err) {
+      return res.status(403).json({ error: "Invalid token" });
+    }
+
     try {
       const blog = await Blog.findById(req.params.id);
       if (!blog) {
         return res.status(404).json({ error: "Blog not found" });
       }
-      res.status(200).json(blog);
+
+      if (blog.user.toString() !== bloguser.id) {
+        return res
+          .status(403)
+          .json({ error: "You are not authorized to delete this blog" });
+      }
+
+      await blog.remove();
+      res.status(200).json({ message: "Blog deleted successfully" });
     } catch (err) {
       console.error(err);
-      res.status(500).json({ error: "An error occurred while fetching the blog" });
+      res
+        .status(500)
+        .json({ error: "An error occurred while deleting the blog" });
     }
   });
-
-  app.put("/edit/:id", async (req, res) => {
-
-    const { id } = req.params;
-    const { title, description } = req.body;
-    const { user } = req;
-    const token = req.cookies.token;
-    if (!token) {
-      return res.status(401).json({ error: "Access denied, no token provided" });
-    }
-  
-    jwt.verify(token, process.env.JWT_SECRET, async (err, bloguser) => {
-      if (err) {
-        return res.status(403).json({ error: "Invalid token" });
-      }
-      
-      try {
-        const blog = await Blog.findById(req.params.id);
-        if (!blog) {
-          return res.status(404).json({ error: "Blog not found" });
-        }
-        
-        if (blog.user.toString() !== bloguser.id) {
-          return res.status(403).json({ error: "You are not authorized to edit this blog" });
-        }
-
-        blog.title = req.body.title || blog.title;
-        blog.description = req.body.description || blog.description;
-        await blog.save();
-        
-        res.status(200).json({ message: "Blog updated successfully" });
-      } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "An error occurred while updating the blog" });
-      }
-    });
-  });
-
-  app.delete("/delete/:id", async (req, res) => {
-    const token = req.cookies.token;
-    if (!token) {
-      return res.status(401).json({ error: "Access denied, no token provided" });
-    }
-  
-    jwt.verify(token, process.env.JWT_SECRET, async (err, bloguser) => {
-      if (err) {
-        return res.status(403).json({ error: "Invalid token" });
-      }
-  
-      try {
-        const blog = await Blog.findById(req.params.id);
-        if (!blog) {
-          return res.status(404).json({ error: "Blog not found" });
-        }
-  
-        if (blog.user.toString() !== bloguser.id) {
-          return res.status(403).json({ error: "You are not authorized to delete this blog" });
-        }
-  
-        await blog.remove();
-        res.status(200).json({ message: "Blog deleted successfully" });
-      } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "An error occurred while deleting the blog" });
-      }
-    });
-  });
+});
 
 app.listen(4000, () => {
   console.log(`Running on port 4000`);
